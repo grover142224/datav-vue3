@@ -9,7 +9,7 @@ const autoResize = (dom: Ref<HTMLElement | null>, onResize?: () => void, afterAu
   let debounceInitWHFun: () => void
   let domObserver: MutationObserver | null = null
   let domHtml: HTMLElement | null = null
-
+  let cleanup:null|()=>void
   const initWH = (resize = true) => {
     return new Promise((resolve) => {
       nextTick(() => {
@@ -34,8 +34,11 @@ const autoResize = (dom: Ref<HTMLElement | null>, onResize?: () => void, afterAu
   }
   const bindDomResizeCallback = () => {
     domObserver = observerDomResize(domHtml!, debounceInitWHFun)
-
-    useEventListener(window, 'resize', debounceInitWHFun)
+    if(cleanup)
+    {
+      cleanup();
+    }
+    cleanup=useEventListener(window, 'resize', debounceInitWHFun)
   }
   const unbindDomResizeCallback = () => {
     if (!domObserver)
@@ -44,6 +47,7 @@ const autoResize = (dom: Ref<HTMLElement | null>, onResize?: () => void, afterAu
     domObserver.disconnect()
     domObserver.takeRecords()
     domObserver = null
+    cleanup&&cleanup()
   }
 
   const autoResizeMixinInit = async () => {
